@@ -1,4 +1,5 @@
 require 'io/console'
+require 'set'
 
 class HangmanGame
   def initialize(filename)
@@ -20,8 +21,10 @@ class HangmanGame
           running = false
           break
         end
-        # TODO: czy to wyczerpuje wszystkie możliwości przetwarzania litery?
-        if valid? letter
+
+        if @letters.include?(letter)
+
+        elsif valid? letter
           add letter
           update letter
         else
@@ -42,21 +45,28 @@ class HangmanGame
   end
 
   def load_words(filename)
-    @words = ['wisielec'] # TODO
-  end
+    @words = [] # TODO
+    File.open(filename).each do |line|
+      @words << line
+    end
+end
 
   def load_pictures
     fp = File.open('hangman.txt')
-    # TODO
-    # popatrz w hangman.txt
-    # pierwszy wiersz to ilość wariantów
-    # drugi to ilość wierszy w każdym wariancie
+    @num_stages = fp.readline.to_i
+    stage_hight = fp.readline.to_i
+    @stages = {}
+    (0...@num_stages).each do |i| 
+      @stages[i] = []
+      (0...stage_hight).each do |j|
+       cokolwiek = fp.readline
+      @stages[i] << cokolwiek
+    end
+  end
   end
 
   def choose_word
-    # TODO
-    # wybierz jedno losowe słowo ze słownika
-    # BONUS: wybierz takie które jeszcze nie zostało w tej sesji użyte
+    @correct_word = @words.sample
   end
 
   def reset_hangman
@@ -70,8 +80,8 @@ class HangmanGame
   end
 
   def clear
-    STDOUT.write "\e[2J\e[1;1H"
-  end
+    # STDOUT.write "\e[2J\e[1;1H"
+  end 
   
   def goto(row, col)
     "\e[#{row};#{col}H"
@@ -87,6 +97,9 @@ class HangmanGame
   def draw_gallows
     # TODO
     # narysuj szubienicę według bieżącego stanu gry
+    @stages[@fails].each do |line|
+      STDOUT.puts line
+    end
   end
 
   def cols
@@ -94,6 +107,7 @@ class HangmanGame
   end
 
   def draw_letters
+    STDOUT.puts @letters.to_a.join('')
     # TODO
     # wypisz użyte już litery po prawej stronie w wierszu 1
   end
@@ -102,15 +116,16 @@ class HangmanGame
     mid = (cols/2).to_i
     # TODO
     # wypisz obecny stan zgadywania na środku wiersza 2
+    STDOUT.puts @word
   end
 
   def draw_score
     text = "Score: #{@score}"
-    # TODO
-    # wypisz punktację po prawej stronie wiersza 2
+  STDOUT.puts text
   end
 
   def prompt
+    STDIN.getch
     # TODO
     # pobierz jeden znak z konsoli
   end
@@ -118,11 +133,12 @@ class HangmanGame
   def valid?(letter)
     # TODO
     # kiedy litera jest błędna?
-    true
+    @correct_word.include?(letter)
   end
 
   def add(letter)
     # TODO
+    @letters.add letter
   end
 
   def update(letter)
@@ -138,7 +154,7 @@ class HangmanGame
   end
 
   def guessed?
-    # TODO: kiedy zgadliśmy słowo?
+    @word==@correct_word
   end
 
   def hang
